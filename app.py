@@ -1,7 +1,4 @@
-# Project: Amazon Price Tracker Web App
-# Features: User Auth, Product Tracking, Email Alerts, Scheduler
-
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_pymongo import PyMongo
 from flask_mail import Mail, Message
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -13,16 +10,17 @@ from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
 from datetime import datetime
 import re, time, os
+from flask_bcrypt import Bcrypt
 
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
+bcrypt = Bcrypt(app)
 
 # ===== MongoDB Setup =====
-username = quote_plus("PunithKumar")  # Encode special characters if any
-password = quote_plus("Kkk@162114")
+username = quote_plus("username")  # Encode special characters if any
+password = quote_plus("password")
 mongo_uri = f"mongodb+srv://admin:nikhil@cluster0.yjnzzzx.mongodb.net/price_tracker"
-
 app.config["MONGO_URI"] = mongo_uri
 mongo = PyMongo(app)
 
@@ -30,11 +28,11 @@ mongo = PyMongo(app)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = '<your-email>'
-app.config['MAIL_PASSWORD'] = '<your-email-password>'
+app.config['MAIL_USERNAME'] = '<your-email>'  # Example: test@gmail.com
+app.config['MAIL_PASSWORD'] = '<your-email-password>'  # App password if 2FA
 mail = Mail(app)
 
-# ===== Util Functions =====
+# ===== Utility Functions =====
 def extract_product_id(url):
     match = re.search(r"/dp/([A-Z0-9]+)/?", url)
     return match.group(1) if match else None
@@ -43,15 +41,61 @@ def remove_duplicates(lst):
     seen = set()
     return [x for x in lst if not (x in seen or seen.add(x))]
 
+def scrape_product_data(pid):
+    try:
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+        url = f"https://www.amazon.in/dp/{pid}"
+        driver.get(url)
+        time.sleep(3)
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        driver.quit()
+
+        price_tag = soup.find(class_="a-price-whole")
+        name_tag = soup.find(id="productTitle")
+        if price_tag and name_tag:
+            price = price_tag.text.strip().replace(",", "")
+            name = name_tag.text.strip()
+            return {
+                "product_id": pid,
+                "product_name": name,
+                "price": price
+            }
+    except Exception as e:
+        print(f"Error scraping {pid}: {e}")
+    return None
+
 # ===== Auth Routes =====
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
-        session['user'] = email
-        mongo.db.users.update_one({"_id": email}, {"$setOnInsert": {"product_ids": []}}, upsert=True)
-        return redirect(url_for('dashboard'))
+        password = request.form['password']
+
+        user = mongo.db.users.find_one({"_id": email})
+        if user:
+            if bcrypt.check_password_hash(user['password'], password):
+                session['user'] = email
+                return redirect(url_for('dashboard'))
+            else:
+                return "Incorrect password", 401
+        else:
+            # First-time user, register them
+            hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+            mongo.db.users.insert_one({
+                "_id": email,
+                "password": hashed_pw,
+                "product_ids": []
+            })
+            session['user'] = email
+            return redirect(url_for('dashboard'))
+
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
@@ -64,21 +108,15 @@ def logout():
 def dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
-
-    print("[DEBUG] Current user:", session['user'])
-
     user = mongo.db.users.find_one({"_id": session['user']})
-    print("[DEBUG] User doc:", user)
-
     products = []
     for pid in user.get("product_ids", []):
         price_entry = mongo.db.amazon_prices.find_one(
-            {"product_id": pid, "user_id": session['user']}, sort=[("timestamp", -1)]
+            {"product_id": pid, "user_id": session['user']},
+            sort=[("timestamp", -1)]
         )
-        print(f"[DEBUG] Latest price for {pid}:", price_entry)
         if price_entry:
             products.append(price_entry)
-
     return render_template('dashboard.html', products=products)
 
 # ===== Add Product =====
@@ -86,16 +124,28 @@ def dashboard():
 def add_product():
     if 'user' not in session:
         return redirect(url_for('login'))
+
     url = request.form['url']
     pid = extract_product_id(url)
     if not pid:
         return "Invalid URL", 400
+
     user = mongo.db.users.find_one({"_id": session['user']})
     new_list = remove_duplicates(user['product_ids'] + [pid])
     mongo.db.users.update_one({"_id": session['user']}, {"$set": {"product_ids": new_list}})
+
+    # Immediately insert scraped product data to amazon_prices
+    product_data = scrape_product_data(pid)
+    if product_data:
+        product_data.update({
+            "user_id": session['user'],
+            "timestamp": datetime.now()
+        })
+        mongo.db.amazon_prices.insert_one(product_data)
+
     return redirect(url_for('dashboard'))
 
-# ===== Scraper and Email Notification =====
+# ===== Price Tracker =====
 def track_prices():
     options = Options()
     options.add_argument("--headless")
@@ -124,7 +174,7 @@ def track_prices():
                     "timestamp": datetime.now()
                 }
                 mongo.db.amazon_prices.insert_one(data)
-                # Send email if price is below threshold (example: ₹3000)
+
                 if float(price) < 3000:
                     send_email(uid, name, price, url)
     driver.quit()
@@ -142,3 +192,8 @@ scheduler.start()
 # ===== Run =====
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
+
