@@ -1,5 +1,3 @@
-
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -12,9 +10,9 @@ import re
 import time
 
 # ========== MongoDB Setup ==========
-username = quote_plus("PunithKumar")  # Encode special characters if any
-password = quote_plus("Kkk@162114")
-mongo_uri = f"mongodb+srv://admin:nikhil@cluster0.yjnzzzx.mongodb.net/"
+username = quote_plus("")  # Encode special characters if any
+password = quote_plus("")
+mongo_uri = f"mongodb+srv://mongodb.net/"
 client = MongoClient(mongo_uri)
 db = client["price_tracker"]
 collection = db["amazon_prices"]

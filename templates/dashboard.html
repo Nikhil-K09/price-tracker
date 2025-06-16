@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head><title>Dashboard</title></head>
-<body>
-  <h2>Welcome, {{ session['user'] }}</h2>
+  <head><title>Dashboard</title></head>
+  <body>
+    <h2>Welcome, {{ session['user'] }}</h2>
 
-  <form method="POST" action="/add_product">
-    <input type="text" name="url" placeholder="Paste Amazon URL" required>
-    <button type="submit">Track Product</button>
-  </form>
+    <form method="POST" action="/add_product">
+      <input type="text" name="url" placeholder="Paste Amazon URL" required>
+      <button type="submit">Track Product</button>
+    </form>
 
-  <h3>Tracked Products:</h3>
-  {% for product in products %}
-    <div>
-      <strong>{{ product.product_name }}</strong> - ₹{{ product.price }} <em>({{ product.timestamp }})</em>
-    </div>
-  {% else %}
-    <p>No products being tracked yet.</p>
-  {% endfor %}
+    <h3>Tracked Products:</h3>
+    {% for product in products %}
+      <div>
+        <strong>{{ product.product_name }}</strong> - ₹{{ product.price }} <em>({{ product.timestamp }})</em>
+      </div>
+    {% else %}
+      <p>No products being tracked yet.</p>
+    {% endfor %}
 
-  <br>
-  <a href="/logout">Logout</a>
-</body>
+    <br>
+    <a href="/logout">Logout</a>
+  </body>
 </html>

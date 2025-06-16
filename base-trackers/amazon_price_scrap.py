@@ -8,7 +8,7 @@ from pymongo import MongoClient
 from datetime import datetime
 
 # Replace with your own MongoDB URI
-client = MongoClient("mongodb+srv://admin:nikhil@cluster0.yjnzzzx.mongodb.net/")
+client = MongoClient("mongodb+srv://mongodb.net/")
 
 db = client["amazon_tracker"]        # Database
 collection = db["price_history"]     # Collection

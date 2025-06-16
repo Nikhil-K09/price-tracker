@@ -69,7 +69,6 @@ def scrape_product_data(pid):
     return None
 
 # ===== Auth Routes =====
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -95,7 +94,6 @@ def login():
             return redirect(url_for('dashboard'))
 
     return render_template('login.html')
-
 
 @app.route('/logout')
 def logout():

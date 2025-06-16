@@ -6,12 +6,13 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from datetime import datetime
 import time
+
 # ---- MongoDB Setup ----
 from urllib.parse import quote_plus
 
-username = quote_plus("PunithKumar")  # Encode special characters if any
-password = quote_plus("Kkk@162114")
-mongo_uri = f"mongodb+srv://{username}:{password}@cluster0.szcharl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+username = quote_plus("")  # Encode special characters if any
+password = quote_plus("")
+mongo_uri = f"mongodb+srv://mongodb.net/"
 client = MongoClient(mongo_uri)
 db = client["price_tracker"]
 collection = db["flipkart_prices"]
