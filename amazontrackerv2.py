@@ -20,22 +20,20 @@ options = Options()
 options.add_argument("--headless")  # comment this line if you want to see the browser
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()), options=options
+)
 url = "https://www.amazon.in/dp/B0BCFKG49M"
 
 driver.get(url)
 time.sleep(3)  # wait for JS to load
-soup = BeautifulSoup(driver.page_source, 'lxml')
+soup = BeautifulSoup(driver.page_source, "lxml")
 driver.quit()
 price_tag = soup.find(class_="a-price-whole")
 name = soup.find(id="productTitle")
 price = price_tag.text.strip()
 pname = name.text.strip()
-data = {
-        "product_name": pname,
-        "price": price,
-        "timestamp": datetime.now()
-    }
+data = {"product_name": pname, "price": price, "timestamp": datetime.now()}
 
 collection.insert_one(data)
 print(f"[LOGGED] {pname} | ₹{price}")
