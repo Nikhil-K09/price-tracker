@@ -21,7 +21,7 @@ app.secret_key = 'supersecretkey'
 # ===== MongoDB Setup =====
 username = quote_plus("PunithKumar")  # Encode special characters if any
 password = quote_plus("Kkk@162114")
-mongo_uri = f"mongodb+srv://{username}:{password}@cluster0.szcharl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+mongo_uri = f"mongodb+srv://admin:nikhil@cluster0.yjnzzzx.mongodb.net/price_tracker"
 
 app.config["MONGO_URI"] = mongo_uri
 mongo = PyMongo(app)
@@ -64,12 +64,21 @@ def logout():
 def dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
+
+    print("[DEBUG] Current user:", session['user'])
+
     user = mongo.db.users.find_one({"_id": session['user']})
+    print("[DEBUG] User doc:", user)
+
     products = []
     for pid in user.get("product_ids", []):
-        price_entry = mongo.db.amazon_prices.find_one({"product_id": pid, "user_id": session['user']}, sort=[("timestamp", -1)])
+        price_entry = mongo.db.amazon_prices.find_one(
+            {"product_id": pid, "user_id": session['user']}, sort=[("timestamp", -1)]
+        )
+        print(f"[DEBUG] Latest price for {pid}:", price_entry)
         if price_entry:
             products.append(price_entry)
+
     return render_template('dashboard.html', products=products)
 
 # ===== Add Product =====

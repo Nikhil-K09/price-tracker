@@ -14,7 +14,7 @@ import time
 # ========== MongoDB Setup ==========
 username = quote_plus("PunithKumar")  # Encode special characters if any
 password = quote_plus("Kkk@162114")
-mongo_uri = f"mongodb+srv://{username}:{password}@cluster0.szcharl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+mongo_uri = f"mongodb+srv://admin:nikhil@cluster0.yjnzzzx.mongodb.net/"
 client = MongoClient(mongo_uri)
 db = client["price_tracker"]
 collection = db["amazon_prices"]
