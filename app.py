@@ -11,7 +11,8 @@ from urllib.parse import quote_plus
 from datetime import datetime
 import re, time, os
 from flask_bcrypt import Bcrypt
-
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'

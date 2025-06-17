@@ -1,14 +1,21 @@
 <!DOCTYPE html>
-  <html>
-  <head>
-    <title>Login</title>
-  </head>
-  <body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login / Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/login_design.css') }}">
+</head>
+<body>
+  <main class="login-container" role="main" aria-label="Login or Register">
     <h2>Login / Register</h2>
-  <form method="POST" action="/login">
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="password" name="password" placeholder="Password" required>
+    <form method="POST" action="{{ url_for('login') }}" novalidate>
+      <input type="email" name="email" placeholder="Email" required autocomplete="email" />
+      <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
       <button type="submit">Login / Register</button>
-  </form>
-  </body>
+    </form>
+  </main>
+</body>
 </html>
