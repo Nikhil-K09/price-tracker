@@ -1,0 +1,10 @@
+Flask
+Flask-PyMongo
+Flask-Mail
+apscheduler
+selenium
+webdriver-manager
+beautifulsoup4
+flask-bcrypt
+lxml
+

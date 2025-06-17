@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/dashboard_design.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome, {{ session['user'] }}</h1>
+
+    <form method="POST" action="{{ url_for('add_product') }}" class="input-group">
+      <input type="text" name="url" placeholder="Paste Amazon URL" id="amazon-url" required>
+      <button type="submit" id="track-btn">Track Product</button>
+    </form>
+
+    <h2>Tracked Products:</h2>
+    <div class="tracked-products">
+      {% for product in products %}
+        <div class="product-item">
+          <span class="product-name">{{ product.product_name }}</span> - ₹{{ product.price }} 
+          <span class="timestamp">{{ product.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        </div>
+      {% else %}
+        <p>No products being tracked yet.</p>
+      {% endfor %}
+    </div>
+
+    <a href="{{ url_for('logout') }}">
+      <button class="logout-btn">Logout</button>
+    </a>
+  </div>
+</body>
+</html>
